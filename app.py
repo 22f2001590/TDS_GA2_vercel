@@ -23,8 +23,12 @@ def home():
         data = json.load(file)
 
         for name in names:
-            mark = next((d["marks"] for d in data if d["name"] == name), None)
-            marks.append(mark if mark is not None else "Not Found")
+            for d in data:
+                if d["name"] == name:
+                    marks.append(d["marks"])
+                    break
+            # mark = next((d["marks"] for d in data if d["name"] == name), None)
+            # marks.append(mark if mark is not None else "Not Found")
 
     return jsonify({'marks': marks})  # Return a proper JSON response
 
