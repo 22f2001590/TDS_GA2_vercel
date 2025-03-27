@@ -1,38 +1,26 @@
-# write a flask app
-
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-
 import json
+from urllib.parse import unquote
 
 app = Flask(__name__)
 
-CORS(app)  # Enable CORS for cross-origin requests (CORS)
+@app.route('/<path:data>/api')
+def process_data(data):
+    try:
+        # Decode and parse the JSON from the URL
+        decoded_data = unquote(data)
+        json_data = json.loads(decoded_data)
 
-@app.route('/')
-def index():
-    return 'Hello, World!'
+        # Get names from query parameters
+        names = request.args.getlist('name')  # Multiple 'name' parameters
 
-@app.route('/api')
-def home():
-    file_path = "q-vercel-python.json"
-    names = request.args.getlist('name')  # Extract list of names from query params
+        # Extract marks for matching names
+        marks = [item["marks"] for item in json_data if item["name"] in names]
 
-    marks = []
-    with open(file_path, "r") as file:
-        data = json.load(file)
+        return jsonify({"marks": marks})
 
-        for name in names:
-            for d in data:
-                if d["name"] == name:
-                    marks.append(d["marks"])
-                    break
-            # mark = next((d["marks"] for d in data if d["name"] == name), None)
-            # marks.append(mark if mark is not None else "Not Found")
-
-    return jsonify({'marks': marks})  # Return a proper JSON response
-
-
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)
